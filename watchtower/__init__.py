@@ -230,7 +230,7 @@ class CloudWatchLogHandler(logging.Handler):
         else:
             _message = message
 
-        cwl_message = dict(timestamp=int(message.created * 1000), message=(self.format(_message) or "<EMPTY>"))
+        cwl_message = dict(timestamp=int(message.created * 1000), message=(self.format(_message) or "\n"))
 
         if self.use_queues:
             if stream_name not in self.queues:

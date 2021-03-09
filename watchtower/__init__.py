@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from copy import copy
 from datetime import date, datetime
 from operator import itemgetter
 import json, logging, time, threading, warnings
@@ -220,9 +221,16 @@ class CloudWatchLogHandler(logging.Handler):
             self.sequence_tokens[stream_name] = None
 
         if isinstance(message.msg, Mapping):
-            message.msg = json.dumps(message.msg, default=self.json_serialize_default)
+            _message = copy(message)
+            _message.msg = json.dumps(message.msg, default=self.json_serialize_default)
+        elif not message.msg:
+            # Replace zero-length messages with newlines for CloudWatch to be able to ingest them
+            _message = copy(message)
+            _message.msg = "\n"
+        else:
+            _message = message
 
-        cwl_message = dict(timestamp=int(message.created * 1000), message=self.format(message))
+        cwl_message = dict(timestamp=int(message.created * 1000), message=self.format(_message))
 
         if self.use_queues:
             if stream_name not in self.queues:

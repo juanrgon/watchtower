@@ -221,16 +221,9 @@ class CloudWatchLogHandler(logging.Handler):
             self.sequence_tokens[stream_name] = None
 
         if isinstance(message.msg, Mapping):
-            _message = copy(message)
-            _message.msg = json.dumps(message.msg, default=self.json_serialize_default)
-        elif not message.msg:
-            # Replace zero-length messages with newlines for CloudWatch to be able to ingest them
-            _message = copy(message)
-            _message.msg = "\n"
-        else:
-            _message = message
+            message.msg = json.dumps(message.msg, default=self.json_serialize_default)
 
-        cwl_message = dict(timestamp=int(message.created * 1000), message=(self.format(_message) or " "))
+        cwl_message = dict(timestamp=int(message.created * 1000), message=(self.format(message) or " "))
 
         if self.use_queues:
             if stream_name not in self.queues:
